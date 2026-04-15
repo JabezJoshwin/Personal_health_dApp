@@ -1,0 +1,257 @@
+:root {
+  color-scheme: dark;
+  --bg: #0b1020;
+  --card: #121a33;
+  --border: #243055;
+  --text: #e8ecff;
+  --muted: #9aa4d6;
+  --accent: #7c5cff;
+  --accent2: #3ad29f;
+  --danger: #ff6b7a;
+  --radius: 12px;
+  font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(1200px 600px at 20% -10%, #1a2550, var(--bg));
+  color: var(--text);
+  min-height: 100vh;
+}
+
+.page {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 28px 20px 64px;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+h1 {
+  font-size: 1.55rem;
+  margin: 0 0 8px;
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  font-size: 1.1rem;
+  margin: 0 0 12px;
+}
+
+.sub {
+  margin: 0;
+  color: var(--muted);
+  max-width: 640px;
+  line-height: 1.5;
+}
+
+.card {
+  background: linear-gradient(180deg, #141c38, var(--card));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 14px;
+  margin-top: 12px;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+label.wide {
+  grid-column: 1 / -1;
+}
+
+input {
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #0c1228;
+  color: var(--text);
+  padding: 10px 12px;
+  font-size: 0.95rem;
+}
+
+input:focus {
+  outline: 2px solid rgba(124, 92, 255, 0.45);
+  border-color: var(--accent);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.btn {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--accent), #5a8bff);
+  color: white;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn.secondary {
+  background: #1e2a52;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.small,
+.note {
+  font-size: 0.88rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.note {
+  margin-top: 10px;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.85rem;
+}
+
+.wrap {
+  word-break: break-all;
+}
+
+.dl {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 8px 12px;
+  margin: 0;
+}
+
+.dl dt {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.dl dd {
+  margin: 0;
+}
+
+.err {
+  color: var(--danger);
+  font-size: 0.9rem;
+}
+
+.details {
+  margin-top: 12px;
+}
+
+.details summary {
+  cursor: pointer;
+  color: var(--accent2);
+}
+
+pre {
+  background: #0a0f22;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  overflow: auto;
+  max-height: 240px;
+}
+
+.txList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.txItem {
+  text-align: left;
+  background: #0c1228;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  cursor: pointer;
+  color: var(--text);
+  transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+}
+
+.txItem:hover {
+  transform: translateY(-1px);
+  border-color: rgba(124, 92, 255, 0.55);
+  background: #0b1126;
+}
+
+.txItem.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(124, 92, 255, 0.25);
+}
+
+.txItem:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.txTop {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.txTime {
+  font-size: 0.82rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.txMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.small-pre {
+  font-size: 0.72rem;
+}
+
+.footer {
+  margin-top: 28px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.wallet-adapter-button {
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+}

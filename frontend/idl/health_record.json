@@ -1,0 +1,121 @@
+{
+  "address": "9zqRNZ6jg9wZKJQkvHJJdn9fc6NDScURh6DH4i4jL1Er",
+  "metadata": {
+    "name": "health_record",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "On-chain metadata: owner, IPFS CID, timestamp"
+  },
+  "instructions": [
+    {
+      "name": "init_record",
+      "discriminator": [
+        222,
+        131,
+        107,
+        128,
+        18,
+        146,
+        125,
+        43
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "health_record",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  99,
+                  111,
+                  114,
+                  100
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              },
+              {
+                "kind": "arg",
+                "path": "timestamp"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "timestamp",
+          "type": "i64"
+        },
+        {
+          "name": "ipfs_cid",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "HealthRecord",
+      "discriminator": [
+        75,
+        125,
+        187,
+        175,
+        128,
+        179,
+        45,
+        90
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "CidTooLong",
+      "msg": "IPFS CID exceeds maximum length"
+    },
+    {
+      "code": 6001,
+      "name": "Unauthorized",
+      "msg": "Only the owner may update this record"
+    }
+  ],
+  "types": [
+    {
+      "name": "HealthRecord",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "ipfs_cid",
+            "type": "string"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+node_modules/
+dist/
+.next/
+out/
+target/
+.anchor/
+*.log
+.env
+.env.local
+.DS_Store
+test-ledger/
+.vercel
+
+# Circuit build: keep final artifacts for deploy; ignore heavy intermediates
+circuits/build/pot*.ptau
+circuits/build/*.ptau
+circuits/build/*.r1cs
+circuits/build/*.sym
+circuits/build/circuit_0000.zkey

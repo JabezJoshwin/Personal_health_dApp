@@ -1,0 +1,11 @@
+{
+  "name": "personal-health-dapp-monorepo",
+  "private": true,
+  "description": "Decentralized Personal Health Record — Solana + IPFS + client AES + off-chain ZK (Circom/SnarkJS)",
+  "scripts": {
+    "build:circuits": "cd circuits && npm run build",
+    "anchor:build": "cd anchor && anchor build",
+    "backend:dev": "cd backend && npm run dev",
+    "frontend:dev": "cd frontend && npm run dev"
+  }
+}
