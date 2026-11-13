@@ -9,6 +9,14 @@
   "instructions": [
     {
       "name": "init_record",
+      "docs": [
+        "Creates one record account per upload.",
+        "",
+        "`commitment` is Poseidon(vaccinationCount, salt), computed by the",
+        "owner's client. The program stores it without interpreting it; a",
+        "verifier later compares it with the commitment output of a",
+        "zero-knowledge proof to check that the proof refers to this record."
+      ],
       "discriminator": [
         222,
         131,
@@ -65,6 +73,15 @@
         {
           "name": "ipfs_cid",
           "type": "string"
+        },
+        {
+          "name": "commitment",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
         }
       ]
     }
@@ -89,11 +106,6 @@
       "code": 6000,
       "name": "CidTooLong",
       "msg": "IPFS CID exceeds maximum length"
-    },
-    {
-      "code": 6001,
-      "name": "Unauthorized",
-      "msg": "Only the owner may update this record"
     }
   ],
   "types": [
@@ -113,6 +125,15 @@
           {
             "name": "timestamp",
             "type": "i64"
+          },
+          {
+            "name": "commitment",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
           }
         ]
       }
