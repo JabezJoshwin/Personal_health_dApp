@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "compile": "mkdir -p build && circom vaccination_threshold.circom --r1cs --wasm --sym -o build -l node_modules",
+    "compile": "mkdir -p build && circom vaccination_threshold.circom --r1cs --wasm --sym --O2 -o build -l node_modules",
     "build": "npm run compile && bash scripts/full-build.sh",
     "test": "node --test --test-force-exit test/*.test.mjs"
   },

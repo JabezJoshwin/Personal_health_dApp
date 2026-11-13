@@ -1,5 +1,5 @@
 {
-  "recorded_at": "2026-11-13T06:17:45.991Z",
+  "recorded_at": "2026-11-13T06:33:59.118Z",
   "runs": 100,
   "warmup_runs": 5,
   "note": "Timings are wall-clock in Node.js; snarkjs uses worker threads. v1 is the original threshold-only circuit; v2 adds range checks, the Poseidon commitment and the challenge.",
@@ -17,67 +17,67 @@
       "wasm": 36469,
       "zkey": 22333,
       "verification_key_json": 3109,
-      "proof_json": 722,
+      "proof_json": 721,
       "public_signals_json": 9
     },
     "public_signals": 2,
     "timings": {
       "witness": {
         "n": 100,
-        "mean_ms": 5.593,
-        "stdev_ms": 0.776,
-        "min_ms": 4.293,
-        "p5_ms": 4.443,
-        "median_ms": 5.421,
-        "p95_ms": 6.904,
-        "max_ms": 7.442
+        "mean_ms": 5.357,
+        "stdev_ms": 0.567,
+        "min_ms": 4.388,
+        "p5_ms": 4.442,
+        "median_ms": 5.286,
+        "p95_ms": 6.2,
+        "max_ms": 7.049
       },
       "prove": {
         "n": 100,
-        "mean_ms": 22.324,
-        "stdev_ms": 1.99,
-        "min_ms": 18.505,
-        "p5_ms": 18.978,
-        "median_ms": 22.7,
-        "p95_ms": 25.105,
-        "max_ms": 28.638
+        "mean_ms": 22.766,
+        "stdev_ms": 2.069,
+        "min_ms": 18.072,
+        "p5_ms": 20.142,
+        "median_ms": 22.851,
+        "p95_ms": 26.142,
+        "max_ms": 28.248
       },
       "full_prove": {
         "n": 100,
-        "mean_ms": 30.334,
-        "stdev_ms": 1.152,
-        "min_ms": 28.134,
-        "p5_ms": 28.454,
-        "median_ms": 30.268,
-        "p95_ms": 32.344,
-        "max_ms": 32.94
+        "mean_ms": 30.437,
+        "stdev_ms": 1.259,
+        "min_ms": 28.399,
+        "p5_ms": 28.774,
+        "median_ms": 30.226,
+        "p95_ms": 32.85,
+        "max_ms": 34.465
       },
       "verify": {
         "n": 100,
-        "mean_ms": 12.516,
-        "stdev_ms": 0.584,
-        "min_ms": 12.039,
-        "p5_ms": 12.128,
-        "median_ms": 12.332,
-        "p95_ms": 14.029,
-        "max_ms": 14.638
+        "mean_ms": 12.504,
+        "stdev_ms": 0.602,
+        "min_ms": 11.954,
+        "p5_ms": 12.056,
+        "median_ms": 12.297,
+        "p95_ms": 14.03,
+        "max_ms": 14.622
       }
     }
   },
   "v2": {
     "r1cs": {
-      "constraints": 622,
-      "wires": 624,
+      "constraints": 339,
+      "wires": 341,
       "private_inputs": 2,
       "public_inputs": 2,
       "outputs": 2,
       "labels": 879
     },
     "sizes_bytes": {
-      "r1cs": 85900,
-      "wasm": 1751226,
-      "zkey": 301113,
-      "verification_key_json": 3481,
+      "r1cs": 133988,
+      "wasm": 1750062,
+      "zkey": 206869,
+      "verification_key_json": 3476,
       "proof_json": 721,
       "public_signals_json": 120
     },
@@ -85,43 +85,43 @@
     "timings": {
       "witness": {
         "n": 100,
-        "mean_ms": 31.099,
-        "stdev_ms": 0.31,
-        "min_ms": 30.361,
-        "p5_ms": 30.63,
-        "median_ms": 31.098,
-        "p95_ms": 31.614,
-        "max_ms": 32.215
+        "mean_ms": 30.664,
+        "stdev_ms": 0.346,
+        "min_ms": 29.941,
+        "p5_ms": 30.102,
+        "median_ms": 30.623,
+        "p95_ms": 31.297,
+        "max_ms": 31.481
       },
       "prove": {
         "n": 100,
-        "mean_ms": 97.457,
-        "stdev_ms": 16.985,
-        "min_ms": 85.61,
-        "p5_ms": 86.766,
-        "median_ms": 96.687,
-        "p95_ms": 102.17,
-        "max_ms": 256.097
+        "mean_ms": 74.315,
+        "stdev_ms": 4.144,
+        "min_ms": 67.031,
+        "p5_ms": 67.934,
+        "median_ms": 74.806,
+        "p95_ms": 78.913,
+        "max_ms": 88.676
       },
       "full_prove": {
         "n": 100,
-        "mean_ms": 131.863,
-        "stdev_ms": 6.925,
-        "min_ms": 121.975,
-        "p5_ms": 126.928,
-        "median_ms": 130.734,
-        "p95_ms": 139.257,
-        "max_ms": 180.486
+        "mean_ms": 108.96,
+        "stdev_ms": 4.686,
+        "min_ms": 100.725,
+        "p5_ms": 103.438,
+        "median_ms": 108.384,
+        "p95_ms": 115.512,
+        "max_ms": 140.97
       },
       "verify": {
         "n": 100,
-        "mean_ms": 13.477,
-        "stdev_ms": 0.423,
-        "min_ms": 13.05,
-        "p5_ms": 13.169,
-        "median_ms": 13.373,
-        "p95_ms": 14.89,
-        "max_ms": 15.239
+        "mean_ms": 13.45,
+        "stdev_ms": 0.211,
+        "min_ms": 13.131,
+        "p5_ms": 13.183,
+        "median_ms": 13.41,
+        "p95_ms": 13.827,
+        "max_ms": 14.142
       }
     }
   }
