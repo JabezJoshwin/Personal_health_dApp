@@ -59,25 +59,42 @@ factual claim must be traceable.
 
 ## Target journal
 
-My call (the user asked me to suggest one): **IEEE Access**.
+The user's rule: lowest cost first, provided the journal is reputable and
+Scopus-indexed. My pick: **SN Computer Science** (Springer Nature).
 
-- It uses IEEE format, which the user asked for.
-- Its scope explicitly welcomes application-oriented work
-  (ieeeaccess.ieee.org/about).
-- Checked facts: binary accept/reject review, average acceptance rate 20 %,
-  article processing charge USD 2,160 for 2026 submissions and USD 2,245 for
-  2027 (open.ieee.org/for-authors/article-processing-charges).
-- Scopus indexing is to be confirmed on the Scopus source list before the
-  paper names it anywhere.
+Checked on 2026-11-13 against the journal's own pages and Scopus:
 
-Fallback: Peer-to-Peer Networking and Applications (Springer). Its own page
-lists Scopus and SCIE indexing and a 121-day median first decision; it is now
-fully open access, so it also charges a fee.
+- Cost: hybrid journal. Publishing under the subscription model carries no
+  article processing charge; the journal also states free submission and no
+  colour or page charges. Open access is optional and costs USD 3,290.
+- Scopus: listed on the Scopus source list, coverage 2020 to 2026,
+  CiteScore 2025 of 5.0, SJR 0.445 (scopus.com/sourceid/21101083109).
+- Scope: includes computer and network security/privacy, cryptography, and
+  computers and networks for health systems.
+- Review: single-blind, at least two reviewers, judged "from a sound science
+  perspective"; median 96 days to first decision.
+- Format rules: Word or LaTeX (Springer Nature template recommended),
+  numbered citations in square brackets, a structured abstract of 150–250
+  words, 4–6 keywords.
+- AI rule: use of a large language model must be documented in the Methods
+  section; it cannot be an author.
 
-The paper is written with the standard `IEEEtran` journal class so it
-compiles anywhere. IEEE Access has its own submission template; the body
-moves into it unchanged, and that port is left to the authors at submission
-time.
+Fallback: Health and Technology (Springer, with IUPESM). Hybrid, no charge
+under the subscription model, impact factor 2.6; Springer lists it as
+Scopus-indexed. I have not yet confirmed that on Scopus itself.
+
+Rejected on cost: IEEE Access (USD 2,160 in 2026) and Peer-to-Peer Networking
+and Applications (now fully open access). IEEE journals with no mandatory fee
+exist, but they are the selective Transactions titles, which a prototype
+paper is unlikely to clear.
+
+Format consequence: SN Computer Science does not use IEEE format. The user
+chose both layouts: the paper body is written once in LaTeX and built twice,
+as an IEEE `IEEEtran` journal PDF and as a Springer Nature (`sn-jnl`) PDF
+ready to submit.
+
+Status: design approved by the user on 2026-11-13, with SN Computer Science
+as the target and both layouts.
 
 ## Code changes
 
@@ -167,9 +184,10 @@ and IPFS pinning latency. Both need the user's wallet or Pinata key.
   USENIX or IACR venues; standards (NIST, IETF); and primary specifications
   or official documentation for the tools used. No blogs, no aggregator
   sites.
-- The Acknowledgment discloses AI assistance, as IEEE requires for any
-  submitted article: the system used, which sections, and to what level
-  (open.ieee.org/author-guidelines-for-artificial-intelligence-ai-generated-text).
+- AI assistance is disclosed where each publisher requires it: in the
+  Methods part for Springer Nature, and in the Acknowledgment for the IEEE
+  build (the system used, which sections, and to what level;
+  open.ieee.org/author-guidelines-for-artificial-intelligence-ai-generated-text).
 - Limitations stated plainly: the health data is self-asserted (no issuer
   signature), proofs are verified off-chain, the setup is single-party, the
   encryption key comes from a passphrase, and one claim type is supported.
@@ -179,4 +197,5 @@ and IPFS pinning latency. Both need the user's wallet or Pinata key.
 - Read and check the whole paper; the authors are accountable for it.
 - Redeploy the program to Devnet and update the program id.
 - Revoke the Pinata key committed in `.env.example`.
-- Port into the IEEE Access template, submit, and handle the fee.
+- Submit through the journal's system and choose the subscription model
+  after acceptance to avoid the open access charge.
