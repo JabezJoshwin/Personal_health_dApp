@@ -1,0 +1,37 @@
+{
+  "recorded_at": "2026-11-13T06:19:28.274Z",
+  "captured_from": "frontend/pages/bench.tsx, production build (next build && next start), served from localhost",
+  "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Claude/5.1231.2 Chrome/156.0.8078.75 Safari/537.36",
+  "browser_engine": "Chromium 156",
+  "hardware_concurrency": 8,
+  "runs": 30,
+  "warmup_runs": 3,
+  "note": "prove = witness generation + Groth16 proving via snarkjs in the browser, artifacts loaded from the same origin. verify = checkDisclosure (signal comparison + Groth16 verification). Browser timers are coarsened to 0.1 ms.",
+  "artifacts": {
+    "wasm_bytes": 1751226,
+    "wasm_fetch_ms": 67.8,
+    "zkey_bytes": 301113,
+    "zkey_fetch_ms": 3.6
+  },
+  "first_prove_ms": 312.3,
+  "prove": {
+    "n": 30,
+    "mean_ms": 143.437,
+    "stdev_ms": 13.724,
+    "min_ms": 121.8,
+    "p5_ms": 124.26,
+    "median_ms": 141.1,
+    "p95_ms": 171.29,
+    "max_ms": 174.2
+  },
+  "verify": {
+    "n": 30,
+    "mean_ms": 19.88,
+    "stdev_ms": 2.249,
+    "min_ms": 17.5,
+    "p5_ms": 17.7,
+    "median_ms": 19.3,
+    "p95_ms": 24.385,
+    "max_ms": 25.9
+  }
+}

@@ -1,0 +1,128 @@
+{
+  "recorded_at": "2026-11-13T06:17:45.991Z",
+  "runs": 100,
+  "warmup_runs": 5,
+  "note": "Timings are wall-clock in Node.js; snarkjs uses worker threads. v1 is the original threshold-only circuit; v2 adds range checks, the Poseidon commitment and the challenge.",
+  "v1": {
+    "r1cs": {
+      "constraints": 37,
+      "wires": 39,
+      "private_inputs": 1,
+      "public_inputs": 1,
+      "outputs": 1,
+      "labels": 42
+    },
+    "sizes_bytes": {
+      "r1cs": 6016,
+      "wasm": 36469,
+      "zkey": 22333,
+      "verification_key_json": 3109,
+      "proof_json": 722,
+      "public_signals_json": 9
+    },
+    "public_signals": 2,
+    "timings": {
+      "witness": {
+        "n": 100,
+        "mean_ms": 5.593,
+        "stdev_ms": 0.776,
+        "min_ms": 4.293,
+        "p5_ms": 4.443,
+        "median_ms": 5.421,
+        "p95_ms": 6.904,
+        "max_ms": 7.442
+      },
+      "prove": {
+        "n": 100,
+        "mean_ms": 22.324,
+        "stdev_ms": 1.99,
+        "min_ms": 18.505,
+        "p5_ms": 18.978,
+        "median_ms": 22.7,
+        "p95_ms": 25.105,
+        "max_ms": 28.638
+      },
+      "full_prove": {
+        "n": 100,
+        "mean_ms": 30.334,
+        "stdev_ms": 1.152,
+        "min_ms": 28.134,
+        "p5_ms": 28.454,
+        "median_ms": 30.268,
+        "p95_ms": 32.344,
+        "max_ms": 32.94
+      },
+      "verify": {
+        "n": 100,
+        "mean_ms": 12.516,
+        "stdev_ms": 0.584,
+        "min_ms": 12.039,
+        "p5_ms": 12.128,
+        "median_ms": 12.332,
+        "p95_ms": 14.029,
+        "max_ms": 14.638
+      }
+    }
+  },
+  "v2": {
+    "r1cs": {
+      "constraints": 622,
+      "wires": 624,
+      "private_inputs": 2,
+      "public_inputs": 2,
+      "outputs": 2,
+      "labels": 879
+    },
+    "sizes_bytes": {
+      "r1cs": 85900,
+      "wasm": 1751226,
+      "zkey": 301113,
+      "verification_key_json": 3481,
+      "proof_json": 721,
+      "public_signals_json": 120
+    },
+    "public_signals": 4,
+    "timings": {
+      "witness": {
+        "n": 100,
+        "mean_ms": 31.099,
+        "stdev_ms": 0.31,
+        "min_ms": 30.361,
+        "p5_ms": 30.63,
+        "median_ms": 31.098,
+        "p95_ms": 31.614,
+        "max_ms": 32.215
+      },
+      "prove": {
+        "n": 100,
+        "mean_ms": 97.457,
+        "stdev_ms": 16.985,
+        "min_ms": 85.61,
+        "p5_ms": 86.766,
+        "median_ms": 96.687,
+        "p95_ms": 102.17,
+        "max_ms": 256.097
+      },
+      "full_prove": {
+        "n": 100,
+        "mean_ms": 131.863,
+        "stdev_ms": 6.925,
+        "min_ms": 121.975,
+        "p5_ms": 126.928,
+        "median_ms": 130.734,
+        "p95_ms": 139.257,
+        "max_ms": 180.486
+      },
+      "verify": {
+        "n": 100,
+        "mean_ms": 13.477,
+        "stdev_ms": 0.423,
+        "min_ms": 13.05,
+        "p5_ms": 13.169,
+        "median_ms": 13.373,
+        "p95_ms": 14.89,
+        "max_ms": 15.239
+      }
+    }
+  }
+}
