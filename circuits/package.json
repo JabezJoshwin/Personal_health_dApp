@@ -3,11 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "compile": "mkdir -p build && circom vaccination_threshold.circom --r1cs --wasm --sym -o build -l node_modules",
-    "build": "npm run compile && bash scripts/full-build.sh"
+    "compile": "mkdir -p build && circom vaccination_threshold.circom --r1cs --wasm --sym --O2 -o build -l node_modules",
+    "build": "npm run compile && bash scripts/full-build.sh",
+    "test": "node --test --test-force-exit test/*.test.mjs"
   },
   "devDependencies": {
     "circomlib": "^2.0.5",
+    "poseidon-lite": "^0.3.0",
     "snarkjs": "^0.7.5"
   }
 }

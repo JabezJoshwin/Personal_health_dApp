@@ -1,16 +1,23 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { BN, BorshAccountsCoder, type Idl } from "@coral-xyz/anchor";
-import type { PublicKey } from "@solana/web3.js";
-import idlJson from "../../idl/health_record.json";
-import { getProgramId } from "@/lib/solana";
+import { decodeRecord, getProgramId } from "@/lib/solana";
 import { fetchEncryptedJson } from "@/lib/ipfs";
 import { decryptJson } from "@/lib/crypto";
 import type { EncryptedPayload } from "@/lib/encryptedPayload";
-import type { ProofApiResponse } from "@/lib/types";
+import type { HealthRecordPayload } from "@/lib/types";
+import {
+  DEFAULT_ARTIFACTS,
+  bytesToCommitment,
+  checkDisclosure,
+  parseFieldElement,
+  proveThreshold,
+  randomFieldElement,
+} from "@/lib/zk";
+
+const SELF_CHECK_THRESHOLD = 2;
 
 const WalletMultiButton = dynamic(
   async () =>
@@ -23,13 +30,8 @@ type TxItem = {
   timestamp: number;
   authority: string;
   accountAddress: string;
-};
-
-type DecodedHealthRecord = {
-  owner: PublicKey;
-  ipfsCid?: string;
-  ipfs_cid?: string;
-  timestamp?: BN;
+  /** Poseidon(vaccinationCount, salt) as stored on-chain. */
+  commitment: Uint8Array;
 };
 
 function truncateMiddle(value: string, left = 6, right = 4) {
@@ -71,8 +73,6 @@ export default function TransactionsPage() {
   const [verifyingAll, setVerifyingAll] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const coder = useMemo(() => new BorshAccountsCoder(idlJson as Idl), []);
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
   const [zkByAccount, setZkByAccount] = useState<
     Record<
@@ -104,24 +104,16 @@ export default function TransactionsPage() {
 
       const decoded: TxItem[] = [];
       for (const { pubkey, account } of accounts) {
-        try {
-          const rec = coder.decode(
-            "HealthRecord",
-            account.data
-          ) as DecodedHealthRecord;
-          const cid = rec.ipfsCid ?? rec.ipfs_cid;
-          const tsBn = rec.timestamp;
-          if (!cid || !tsBn) continue;
-          const timestamp = Number(tsBn.toString());
-          decoded.push({
-            cid,
-            timestamp,
-            authority: rec.owner.toBase58(),
-            accountAddress: pubkey.toBase58(),
-          });
-        } catch {
-          // Not a HealthRecord account (or decoding failed) — ignore.
-        }
+        // Skips anything that is not a current-layout HealthRecord account.
+        const rec = decodeRecord(pubkey, account.data);
+        if (!rec) continue;
+        decoded.push({
+          cid: rec.cid,
+          timestamp: Number(rec.timestamp.toString()),
+          authority: rec.owner,
+          accountAddress: rec.address,
+          commitment: rec.commitment,
+        });
       }
 
       decoded.sort((a, b) => b.timestamp - a.timestamp);
@@ -139,7 +131,7 @@ export default function TransactionsPage() {
     } finally {
       setLoadingAccounts(false);
     }
-  }, [coder, connection, selected, wallet.publicKey]);
+  }, [connection, selected, wallet.publicKey]);
 
   useEffect(() => {
     // Fetch once on mount.
@@ -187,56 +179,40 @@ export default function TransactionsPage() {
       }));
       try {
         const enc = (await fetchEncryptedJson(item.cid)) as EncryptedPayload;
-        const plain = (await decryptJson(enc, p)) as unknown;
-        const vaccinationCountRaw = (plain as { vaccinationCount?: unknown })?.vaccinationCount;
-        const vaccinationCount =
-          typeof vaccinationCountRaw === "number"
-            ? vaccinationCountRaw
-            : typeof vaccinationCountRaw === "string"
-              ? Number(vaccinationCountRaw)
-              : NaN;
+        const plain = (await decryptJson(enc, p)) as Partial<HealthRecordPayload>;
 
-        if (!Number.isFinite(vaccinationCount) || vaccinationCount < 0) {
-          setZkByAccount((prev) => ({
-            ...prev,
-            [item.accountAddress]: {
-              status: "error",
-              verified: false,
-              message: "Record missing a valid vaccinationCount.",
-            },
-          }));
-          return;
-        }
-
-        const res = await fetch(`${apiUrl}/generate-proof`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            vaccinationCount,
-            threshold: 2,
-          }),
+        // Self-check: prove in this browser, then verify exactly as an
+        // outside verifier would, against the commitment read from the chain.
+        const challenge = randomFieldElement();
+        const { proof, publicSignals } = await proveThreshold({
+          vaccinationCount: plain.vaccinationCount,
+          salt:
+            plain.zkSalt === undefined
+              ? undefined
+              : parseFieldElement(plain.zkSalt, "Record salt"),
+          threshold: SELF_CHECK_THRESHOLD,
+          challenge,
         });
-        const data = (await res.json()) as ProofApiResponse & {
-          error?: string;
-          message?: string;
-        };
-        if (!res.ok) {
-          setZkByAccount((prev) => ({
-            ...prev,
-            [item.accountAddress]: {
-              status: "error",
-              verified: false,
-              message: data.message ?? data.error ?? `HTTP ${res.status}`,
-            },
-          }));
-          return;
-        }
+        const vkeyRes = await fetch(DEFAULT_ARTIFACTS.vkey);
+        if (!vkeyRes.ok) throw new Error("Could not load the verification key.");
+        const result = await checkDisclosure({
+          vkey: (await vkeyRes.json()) as unknown,
+          proof,
+          publicSignals,
+          expected: {
+            commitment: bytesToCommitment(item.commitment),
+            threshold: SELF_CHECK_THRESHOLD,
+            challenge,
+          },
+        });
         setZkByAccount((prev) => ({
           ...prev,
           [item.accountAddress]: {
             status: "done",
-            verified: !!data.verified,
-            message: data.note,
+            verified: result.ok,
+            message: result.ok
+              ? `Proof verifies against the on-chain commitment (count ≥ ${SELF_CHECK_THRESHOLD}).`
+              : `Not accepted: ${result.reason}.`,
           },
         }));
       } catch (e) {
@@ -250,7 +226,7 @@ export default function TransactionsPage() {
         }));
       }
     },
-    [apiUrl, passphrase]
+    [passphrase]
   );
 
   const verifyAll = useCallback(async () => {

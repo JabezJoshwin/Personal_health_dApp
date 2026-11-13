@@ -1,0 +1,150 @@
+{
+  "recorded_at": "2026-11-13T06:17:55.581Z",
+  "runs": 30,
+  "warmup_runs": 5,
+  "parameters": {
+    "kdf": "PBKDF2-HMAC-SHA256",
+    "iterations": 120000,
+    "salt_bytes": 16,
+    "cipher": "AES-256-GCM",
+    "iv_bytes": 12
+  },
+  "note": "encrypt and decrypt each include one key derivation, as in the application. stored_bytes is the JSON object pinned to IPFS (base64 ciphertext plus salt, IV and labels). Measured with Web Crypto in Node.js.",
+  "key_derivation": {
+    "n": 30,
+    "mean_ms": 23.339,
+    "stdev_ms": 0.085,
+    "min_ms": 23.217,
+    "p5_ms": 23.237,
+    "median_ms": 23.314,
+    "p95_ms": 23.494,
+    "max_ms": 23.536
+  },
+  "payloads": [
+    {
+      "label": "sample record",
+      "plaintext_bytes": 228,
+      "stored_bytes": 451,
+      "encrypt": {
+        "n": 30,
+        "mean_ms": 23.384,
+        "stdev_ms": 0.082,
+        "min_ms": 23.218,
+        "p5_ms": 23.269,
+        "median_ms": 23.375,
+        "p95_ms": 23.541,
+        "max_ms": 23.555
+      },
+      "decrypt": {
+        "n": 30,
+        "mean_ms": 23.401,
+        "stdev_ms": 0.074,
+        "min_ms": 23.297,
+        "p5_ms": 23.309,
+        "median_ms": 23.386,
+        "p95_ms": 23.544,
+        "max_ms": 23.604
+      }
+    },
+    {
+      "label": "1 KiB",
+      "plaintext_bytes": 1024,
+      "stored_bytes": 1511,
+      "encrypt": {
+        "n": 30,
+        "mean_ms": 23.51,
+        "stdev_ms": 0.122,
+        "min_ms": 23.305,
+        "p5_ms": 23.342,
+        "median_ms": 23.499,
+        "p95_ms": 23.68,
+        "max_ms": 23.859
+      },
+      "decrypt": {
+        "n": 30,
+        "mean_ms": 23.437,
+        "stdev_ms": 0.101,
+        "min_ms": 23.264,
+        "p5_ms": 23.298,
+        "median_ms": 23.434,
+        "p95_ms": 23.6,
+        "max_ms": 23.655
+      }
+    },
+    {
+      "label": "16 KiB",
+      "plaintext_bytes": 16384,
+      "stored_bytes": 21991,
+      "encrypt": {
+        "n": 30,
+        "mean_ms": 23.781,
+        "stdev_ms": 0.163,
+        "min_ms": 23.491,
+        "p5_ms": 23.569,
+        "median_ms": 23.744,
+        "p95_ms": 24.077,
+        "max_ms": 24.143
+      },
+      "decrypt": {
+        "n": 30,
+        "mean_ms": 24.007,
+        "stdev_ms": 1.42,
+        "min_ms": 23.376,
+        "p5_ms": 23.422,
+        "median_ms": 23.565,
+        "p95_ms": 27.717,
+        "max_ms": 28.89
+      }
+    },
+    {
+      "label": "64 KiB",
+      "plaintext_bytes": 65536,
+      "stored_bytes": 87527,
+      "encrypt": {
+        "n": 30,
+        "mean_ms": 24.746,
+        "stdev_ms": 0.5,
+        "min_ms": 24.278,
+        "p5_ms": 24.314,
+        "median_ms": 24.568,
+        "p95_ms": 25.807,
+        "max_ms": 26.027
+      },
+      "decrypt": {
+        "n": 30,
+        "mean_ms": 23.788,
+        "stdev_ms": 0.099,
+        "min_ms": 23.619,
+        "p5_ms": 23.647,
+        "median_ms": 23.773,
+        "p95_ms": 23.929,
+        "max_ms": 23.963
+      }
+    },
+    {
+      "label": "256 KiB",
+      "plaintext_bytes": 262144,
+      "stored_bytes": 349671,
+      "encrypt": {
+        "n": 30,
+        "mean_ms": 28.506,
+        "stdev_ms": 2.26,
+        "min_ms": 27.104,
+        "p5_ms": 27.173,
+        "median_ms": 27.428,
+        "p95_ms": 33.492,
+        "max_ms": 34.308
+      },
+      "decrypt": {
+        "n": 30,
+        "mean_ms": 24.85,
+        "stdev_ms": 0.099,
+        "min_ms": 24.692,
+        "p5_ms": 24.718,
+        "median_ms": 24.849,
+        "p95_ms": 25.062,
+        "max_ms": 25.092
+      }
+    }
+  ]
+}

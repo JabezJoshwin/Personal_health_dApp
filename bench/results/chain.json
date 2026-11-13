@@ -1,0 +1,46 @@
+{
+  "recorded_at": "2026-11-13T06:18:06.457Z",
+  "runs": 20,
+  "environment": "local solana-test-validator with the program preloaded; not Devnet or Mainnet",
+  "cid_length_chars": 59,
+  "account": {
+    "bytes": 212,
+    "rent_exempt_lamports": 2366400,
+    "rent_exempt_sol": 0.0023664,
+    "v1_bytes": 180,
+    "v1_rent_exempt_lamports": 2143680,
+    "v1_rent_exempt_sol": 0.00214368
+  },
+  "init_record": {
+    "transaction_bytes": [
+      347
+    ],
+    "transaction_size_limit_bytes": 1232,
+    "compute_units": {
+      "min": 7402,
+      "max": 13402,
+      "distinct": [
+        7402,
+        8902,
+        10402,
+        11902,
+        13402
+      ]
+    },
+    "fee_lamports": [
+      5000
+    ],
+    "owner_debit_lamports_first_tx": 2371400
+  },
+  "local_confirmation": {
+    "note": "Time from send to 'confirmed' on the local validator. Indicative only; public cluster latency was not measured.",
+    "n": 20,
+    "mean_ms": 462.856,
+    "stdev_ms": 43.864,
+    "min_ms": 401.414,
+    "p5_ms": 402.2,
+    "median_ms": 479.669,
+    "p95_ms": 509.55,
+    "max_ms": 511.473
+  }
+}

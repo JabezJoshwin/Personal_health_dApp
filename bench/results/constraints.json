@@ -1,0 +1,23 @@
+{
+  "recorded_at": "2026-11-13T06:38:53.480Z",
+  "note": "The shipped build is compiled with --O2 (full constraint simplification). O1 is reported for comparison only; no timing in this repository was measured with an O1 build of the bound circuit.",
+  "shipped_build_total_constraints": 339,
+  "O1": {
+    "non_linear_constraints": 342,
+    "linear_constraints": 280,
+    "total_constraints": 622,
+    "wires": 624
+  },
+  "O2": {
+    "non_linear_constraints": 339,
+    "linear_constraints": 0,
+    "total_constraints": 339,
+    "wires": 341
+  },
+  "poseidon2_only_O2": {
+    "non_linear_constraints": 240,
+    "linear_constraints": 0,
+    "total_constraints": 240,
+    "wires": 243
+  }
+}

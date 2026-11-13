@@ -53,18 +53,21 @@ export function getProgram(connection: Connection, wallet: WalletContextState) {
 export async function storeCidOnChain(
   connection: Connection,
   wallet: WalletContextState,
-  cid: string
-): Promise<{ signature: string; usedInit: boolean; timestamp: number; account: string }> {
+  cid: string,
+  commitment: Uint8Array
+): Promise<{ signature: string; timestamp: number; account: string }> {
+  if (commitment.length !== 32) {
+    throw new Error("Commitment must be 32 bytes.");
+  }
   const program = getProgram(connection, wallet);
   const owner = wallet.publicKey!;
   const programId = getProgramId();
   // Use millisecond timestamp for uniqueness (seed + stored value).
   const timestamp = Date.now();
-  const tsBig = BigInt(timestamp);
-  const pda = healthRecordPda(owner, tsBig, programId);
+  const pda = healthRecordPda(owner, BigInt(timestamp), programId);
 
   const sig = await program.methods
-    .initRecord(new BN(timestamp), cid)
+    .initRecord(new BN(timestamp), cid, Array.from(commitment))
     .accounts({
       owner,
       healthRecord: pda,
@@ -72,44 +75,75 @@ export async function storeCidOnChain(
     })
     .rpc();
 
-  return { signature: sig, usedInit: true, timestamp, account: pda.toBase58() };
+  return { signature: sig, timestamp, account: pda.toBase58() };
 }
+
+export type OnChainRecord = {
+  address: string;
+  owner: string;
+  cid: string;
+  timestamp: BN;
+  /** Poseidon(vaccinationCount, salt), 32 bytes big-endian. */
+  commitment: Uint8Array;
+};
 
 type DecodedHealth = {
   owner: PublicKey;
   ipfsCid?: string;
   ipfs_cid?: string;
   timestamp?: BN;
+  commitment?: number[];
 };
 
-export async function fetchOnChainCid(
+const accountsCoder = new BorshAccountsCoder(idlJson as Idl);
+
+/** Returns null for anything that is not a current-layout HealthRecord account. */
+export function decodeRecord(address: PublicKey, data: Buffer): OnChainRecord | null {
+  try {
+    const rec = accountsCoder.decode("HealthRecord", data) as DecodedHealth;
+    const cid = rec.ipfsCid ?? rec.ipfs_cid;
+    if (!cid || rec.timestamp === undefined || rec.commitment?.length !== 32) return null;
+    return {
+      address: address.toBase58(),
+      owner: rec.owner.toBase58(),
+      cid,
+      timestamp: rec.timestamp,
+      commitment: Uint8Array.from(rec.commitment),
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Reads one record by its account address. Needs no wallet: any verifier can call it. */
+export async function fetchRecord(
+  connection: Connection,
+  address: string
+): Promise<OnChainRecord | null> {
+  let key: PublicKey;
+  try {
+    key = new PublicKey(address.trim());
+  } catch {
+    throw new Error("That is not a valid Solana address.");
+  }
+  const info = await connection.getAccountInfo(key);
+  if (!info || !info.owner.equals(getProgramId())) return null;
+  return decodeRecord(key, info.data);
+}
+
+/** All records owned by a wallet, newest first. */
+export async function fetchRecordsByOwner(
   connection: Connection,
   owner: PublicKey
-): Promise<{ cid: string; timestamp: BN } | null> {
-  const programId = getProgramId();
-  const coder = new BorshAccountsCoder(idlJson as Idl);
-  const accounts = await connection.getProgramAccounts(programId, {
-    filters: [
-      {
-        memcmp: {
-          offset: 8, // discriminator
-          bytes: owner.toBase58(),
-        },
-      },
-    ],
+): Promise<OnChainRecord[]> {
+  const accounts = await connection.getProgramAccounts(getProgramId(), {
+    filters: [{ memcmp: { offset: 8 /* discriminator */, bytes: owner.toBase58() } }],
   });
-
-  let best: { cid: string; timestamp: BN } | null = null;
+  const out: OnChainRecord[] = [];
   for (const a of accounts) {
-    try {
-      const rec = coder.decode("HealthRecord", a.account.data) as DecodedHealth;
-      const cid = rec.ipfsCid ?? rec.ipfs_cid;
-      const ts = rec.timestamp;
-      if (!cid || ts === undefined) continue;
-      if (!best || ts.gt(best.timestamp)) best = { cid, timestamp: ts };
-    } catch {
-      // ignore
-    }
+    const rec = decodeRecord(a.pubkey, a.account.data);
+    if (rec) out.push(rec);
   }
-  return best;
+  out.sort((a, b) => (b.timestamp.gt(a.timestamp) ? 1 : b.timestamp.lt(a.timestamp) ? -1 : 0));
+  return out;
 }
