@@ -1,0 +1,45 @@
+% IEEE journal layout. Build with: ./build.sh
+\documentclass[journal]{IEEEtran}
+\usepackage[T1]{fontenc} % Times text under XeTeX as well as pdfTeX
+\input{preamble}
+\usepackage{cite}
+\usepackage[hidelinks]{hyperref}
+\newif\ifspringerbuild
+\springerbuildfalse
+\newcommand{\tablefont}{\footnotesize\setlength{\tabcolsep}{4pt}}
+\newcommand{\figurewidth}{\columnwidth}
+
+\begin{document}
+
+\title{\papertitle}
+
+\author{M.~Jabez~Joshwin~Paul and E.~Bijolin~Edwin%
+\thanks{M. Jabez Joshwin Paul is with the Division of Computer Science and
+Engineering, Karunya Institute of Technology and Sciences, Coimbatore, Tamil
+Nadu, India (e-mail: jabezjoshwin@gmail.com).}%
+\thanks{E. Bijolin Edwin is with the Department of Computer Science and
+Engineering, Karunya Institute of Technology and Sciences, Coimbatore, Tamil
+Nadu, India.}}
+
+\markboth{}{Paul and Edwin: \papertitle}
+
+\maketitle
+
+\begin{abstract}
+\input{abstract-ieee}
+\end{abstract}
+
+\begin{IEEEkeywords}
+Zero-knowledge proofs, selective disclosure, personal health records,
+blockchain, Solana, IPFS.
+\end{IEEEkeywords}
+
+\input{body}
+
+\section*{Acknowledgment}
+\aistatement
+
+\bibliographystyle{IEEEtran}
+\bibliography{refs}
+
+\end{document}

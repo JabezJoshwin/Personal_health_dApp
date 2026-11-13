@@ -1,0 +1,61 @@
+% Springer Nature layout (for SN Computer Science). Build with: ./build.sh
+% Items marked in red must be confirmed or filled in by the authors.
+\documentclass[pdflatex,sn-mathphys-num]{sn-jnl}
+\input{preamble}
+\usepackage{xcolor}
+\newif\ifspringerbuild
+\springerbuildtrue
+\newcommand{\tablefont}{\small}
+\newcommand{\figurewidth}{0.72\textwidth}
+\newcommand{\authorcheck}[1]{\textcolor{red}{[AUTHORS TO CONFIRM: #1]}}
+\raggedbottom
+
+\begin{document}
+
+\title[Commitment-Bound Selective Disclosure for Health Records]{\papertitle}
+
+\author*[1]{\fnm{M. Jabez Joshwin} \sur{Paul}}\email{jabezjoshwin@gmail.com}
+\author[2]{\fnm{E. Bijolin} \sur{Edwin}}
+
+\affil*[1]{\orgdiv{Division of Computer Science and Engineering},
+\orgname{Karunya Institute of Technology and Sciences},
+\orgaddress{\city{Coimbatore}, \state{Tamil Nadu}, \country{India}}}
+\affil[2]{\orgdiv{Department of Computer Science and Engineering},
+\orgname{Karunya Institute of Technology and Sciences},
+\orgaddress{\city{Coimbatore}, \state{Tamil Nadu}, \country{India}}}
+
+\abstract{\input{abstract-springer}}
+
+\keywords{Zero-knowledge proofs, Selective disclosure, Personal health
+records, Blockchain, Solana, IPFS}
+
+\maketitle
+
+\input{body}
+
+\backmatter
+
+\section*{Declarations}
+
+\bmhead{Funding} \authorcheck{state the funding source, or that no funding
+was received.}
+
+\bmhead{Competing interests} \authorcheck{state any competing interests, or
+that the authors have none to declare.}
+
+\bmhead{Ethics approval} This work uses synthetic sample data only. No human
+participants, patient data or animals were involved.
+
+\bmhead{Data and code availability} The source code, the test suites, the
+benchmark scripts and the recorded measurement files from which every table
+and figure in this article is generated are in the project repository.
+\authorcheck{give the public repository address and the commit that matches
+this manuscript.}
+
+\bmhead{Author contributions} \authorcheck{describe each author's
+contribution.}
+
+% The class selects the sn-mathphys-num reference style itself.
+\bibliography{refs}
+
+\end{document}

@@ -1,0 +1,28 @@
+% Timing bar chart (pgfplots). Data are generated from bench/results.
+\begin{tikzpicture}
+\begin{axis}[
+  ybar,
+  width=\figurewidth,
+  height=5.2cm,
+  bar width=7pt,
+  ymin=0,
+  ylabel={Time (ms)},
+  ylabel style={font=\footnotesize},
+  symbolic x coords={PN,VN,PB,VB},
+  xtick={PN,VN,PB,VB},
+  xtick pos=bottom,
+  ytick pos=left,
+  xticklabels={{Prove\\(Node.js)},{Verify\\(Node.js)},{Prove\\(browser)},{Verify\\(browser)}},
+  xticklabel style={font=\scriptsize, align=center},
+  yticklabel style={font=\scriptsize},
+  enlarge x limits=0.18,
+  ymajorgrids,
+  grid style={black!15},
+  legend style={font=\scriptsize, at={(0.98,0.97)}, anchor=north east, draw=black!40},
+  legend cell align=left,
+  cycle list={},
+]
+\input{generated/figure-timing-plots}
+\legend{Baseline, Bound}
+\end{axis}
+\end{tikzpicture}

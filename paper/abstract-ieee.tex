@@ -1,0 +1,20 @@
+Patients are often asked to prove a simple fact about their health record,
+such as having received at least a required number of vaccine doses, and
+end up disclosing the whole record. Zero-knowledge proofs can answer such a
+question without revealing the data, but a proof is only meaningful if it is
+tied to a stored record and to a verification session. We start from a
+prototype that stored an encrypted record on IPFS and its content identifier
+on Solana, in which a server computed the threshold proof from the private
+value and the proof referred to no record. We redesign the proof path: a
+salted Poseidon commitment to the private value is stored in the record's
+on-chain account and is also an output of the circuit; a verifier-chosen
+challenge is a public input; input ranges are enforced inside the circuit;
+and proofs are generated in the owner's browser. We implement the design
+with Circom, snarkjs and the Anchor framework and measure it on a laptop.
+The bound circuit has \NewConstraints{} constraints against
+\OldConstraints{} for the baseline. A Groth16 proof takes a median of
+\BrowserProveMs~ms to generate in a browser and \NewVerifyMs~ms to verify.
+Each record occupies a \AccountBytes-byte account with a refundable deposit
+of \RentSol{} SOL, and its creation consumes at most \CuMax{} compute units.
+We analyse the security of the design and state its limitations, chief among
+them that the committed value is self-asserted.

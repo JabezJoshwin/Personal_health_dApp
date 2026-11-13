@@ -65,6 +65,8 @@ const macros = {
   UnsimplifiedConstraints: int(constraints.O1.total_constraints),
   UnsimplifiedLinear: int(constraints.O1.linear_constraints),
   UnsimplifiedNonLinear: int(constraints.O1.non_linear_constraints),
+  PoseidonConstraints: int(constraints.poseidon2_only_O2.total_constraints),
+  PoseidonPercent: Math.round((100 * constraints.poseidon2_only_O2.total_constraints) / v2.r1cs.constraints),
   NodeRuns: circuit.runs,
   NodeWarmup: circuit.warmup_runs,
   OldFullProveMs: ms(v1.timings.full_prove.median_ms),
@@ -211,15 +213,23 @@ fs.writeFileSync(
     "\n"
 );
 
-// Figure data: median with p5/p95 whiskers, in ms
-const bar = (label, t) =>
-  `(${label},${t.median_ms}) +- (0,${(t.p95_ms - t.median_ms).toFixed(3)}) -= (0,${(t.median_ms - t.p5_ms).toFixed(3)})`;
+// Figure data: median with 5th/95th percentile whiskers, in ms.
+// Keys: PN/VN = prove/verify in Node.js, PB/VB = prove/verify in the browser.
+const bar = (key, t) =>
+  `(${key},${t.median_ms}) += (0,${(t.p95_ms - t.median_ms).toFixed(3)}) -= (0,${(t.median_ms - t.p5_ms).toFixed(3)})`;
+const plot = (style, coords) =>
+  `\\addplot+[${style}, error bars/.cd, y dir=both, y explicit] coordinates {${coords.join(" ")}};`;
 fs.writeFileSync(
-  path.join(out, "figure-timing-data.tex"),
+  path.join(out, "figure-timing-plots.tex"),
   header +
     [
-      `\\newcommand{\\TimingBaselineCoords}{${bar("Prove (Node)", v1.timings.full_prove)} ${bar("Verify (Node)", v1.timings.verify)}}`,
-      `\\newcommand{\\TimingBoundCoords}{${bar("Prove (Node)", v2.timings.full_prove)} ${bar("Verify (Node)", v2.timings.verify)} ${bar("Prove (browser)", browser.prove)} ${bar("Verify (browser)", browser.verify)}}`,
+      plot("fill=black!25, draw=black", [bar("PN", v1.timings.full_prove), bar("VN", v1.timings.verify)]),
+      plot("fill=black!70, draw=black", [
+        bar("PN", v2.timings.full_prove),
+        bar("VN", v2.timings.verify),
+        bar("PB", browser.prove),
+        bar("VB", browser.verify),
+      ]),
     ].join("\n") +
     "\n"
 );

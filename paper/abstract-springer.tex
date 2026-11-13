@@ -1,0 +1,25 @@
+\textbf{Purpose:} Patients are often asked to prove a simple fact about
+their health record, such as having received at least a required number of
+vaccine doses, and end up disclosing the whole record. A zero-knowledge
+proof can answer the question without revealing the data, but only if the
+proof is tied to a stored record and to a verification session. We address
+this for a patient-held record stored on IPFS and anchored on Solana.
+
+\textbf{Methods:} Starting from a prototype in which a server computed the
+proof from the private value, we store a salted Poseidon commitment to the
+value in the record's on-chain account, make the same commitment an output
+of the circuit, add a verifier-chosen challenge as a public input, enforce
+input ranges inside the circuit, and generate Groth16 proofs in the owner's
+browser. We implement the design with Circom, snarkjs and Anchor, test it,
+and measure it on a laptop.
+
+\textbf{Results:} The bound circuit has \NewConstraints{} constraints
+against \OldConstraints{} for the baseline. A proof takes a median of
+\BrowserProveMs~ms to generate in a browser and \NewVerifyMs~ms to verify.
+Each record occupies a \AccountBytes-byte account with a refundable deposit
+of \RentSol{} SOL, and its creation consumes at most \CuMax{} compute units.
+
+\textbf{Conclusion:} Binding a threshold proof to an on-chain commitment and
+proving on the owner's device is practical for this claim. The committed
+value remains self-asserted; an issuer attestation is the main missing
+piece.

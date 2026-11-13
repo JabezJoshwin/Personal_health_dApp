@@ -1,0 +1,25 @@
+% Packages and macros shared by both layouts.
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.17}
+\input{generated/numbers}
+
+\newcommand{\papertitle}{Commitment-Bound Selective Disclosure for Patient-Held Health Records on Solana and IPFS}
+
+% Disclosure of AI assistance. IEEE asks for it in the acknowledgments,
+% Springer Nature in the methods part; each wrapper places it accordingly.
+\newcommand{\aistatement}{Claude (Anthropic), a large language model used
+through the Claude Code tool, assisted in this work. It was used to draft
+the text of all sections of the manuscript; to implement the commitment and
+challenge extension of the circuit, the client-side proving and verification
+code, the test suites and the benchmark scripts; and to generate the tables
+and the timing figure from the recorded measurement files. Every numerical
+result reported here was obtained by executing the code on the hardware
+described in Section~\ref{sec:eval}; none was produced by the model. Each
+reference was checked against its publisher, standards-body or DOI registry
+record. The authors reviewed the manuscript and the code and take full
+responsibility for the content.}

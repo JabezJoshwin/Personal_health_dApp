@@ -17,12 +17,15 @@ Use these values in the UI or as JSON when explaining the project.
 
 ## ZK scenario
 
-- **Threshold (public):** `2` (hard-coded in the UI as `DEMO_THRESHOLD`; sent to `/generate-proof`).
-- **Expected result:** With `vaccinationCount: 3`, the circuit sets `valid = 1` and Groth16 verification succeeds.
+- **Threshold (chosen by the verifier):** `2` by default in the UI.
+- **Challenge (chosen by the verifier):** press **New challenge**.
+- **Expected result:** with `vaccinationCount: 3`, the proof has `valid = 1` and the verifier panel shows "Accepted".
 
-## Negative check (optional)
+## Negative checks
 
-- Set `vaccinationCount` to `1` with threshold `2` → expect `verified: false` and `valid` in public signals `0`.
+- Upload a record with `vaccinationCount: 1`, prove with threshold `2` → the verifier panel shows that the count is below the threshold.
+- Verify a genuine proof with a different challenge → rejected as a possible replay.
+- Verify a genuine proof with a higher threshold → rejected as made for a different threshold.
 
 ## Passphrase
 

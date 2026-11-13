@@ -1,0 +1,22 @@
+% Architecture and data flow (TikZ). Sized to fit one IEEE column.
+\begin{tikzpicture}[
+  font=\fontsize{7}{8.4}\selectfont,
+  box/.style={draw, rounded corners=2pt, align=center, inner sep=3pt, minimum height=9mm},
+  flow/.style={-{Stealth[length=1.6mm]}, semithick},
+  lab/.style={font=\fontsize{7}{8.4}\selectfont, align=center, inner sep=1.5pt, fill=white},
+]
+  \node[box, minimum width=29mm, minimum height=42mm, align=center] (owner) at (0,0)
+    {\textbf{Owner's browser}\\[2pt]encrypt record\\compute $C=H(v,s)$\\generate proof $\pi$\\[2pt]\emph{holds $v$, $s$,}\\\emph{passphrase}};
+  \node[box, minimum width=27mm] (ipfs) at (5.9,1.55)
+    {\textbf{IPFS} (pinned)\\ciphertext};
+  \node[box, minimum width=27mm] (chain) at (5.9,0)
+    {\textbf{Solana program}\\record: owner, CID, $C$};
+  \node[box, minimum width=27mm] (verifier) at (5.9,-1.55)
+    {\textbf{Verifier}\\holds $\mathit{vk}$};
+
+  \draw[flow] ([yshift=1.55cm]owner.east) -- node[lab, above] {1: ciphertext} (ipfs.west);
+  \draw[flow] ([yshift=0cm]owner.east) -- node[lab, above] {2: CID, $C$} (chain.west);
+  \draw[flow] ([yshift=2mm]verifier.west) -- node[lab, above] {3: $t$, $c$} ([yshift=-1.35cm]owner.east);
+  \draw[flow] ([yshift=-1.75cm]owner.east) -- node[lab, below, yshift=-1pt] {4: $\pi$, signals} ([yshift=-2mm]verifier.west);
+  \draw[flow] (verifier.north) -- node[lab, right] {5: read $C$} (chain.south);
+\end{tikzpicture}
