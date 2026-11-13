@@ -5,13 +5,9 @@ export type HealthRecordPayload = {
   vaccinationCount: number;
   vaccines: string[];
   testReports: string[];
-};
-
-export type ProofApiResponse = {
-  proof: unknown;
-  publicSignals: string[];
-  verified: boolean;
-  note?: string;
-  error?: string;
-  message?: string;
+  /**
+   * Random salt for the on-chain commitment, as a decimal string. It lives
+   * only inside the encrypted record, so the owner can prove again later.
+   */
+  zkSalt?: string;
 };

@@ -17,3 +17,4 @@ circuits/build/*.ptau
 circuits/build/*.r1cs
 circuits/build/*.sym
 circuits/build/circuit_0000.zkey
+*.tsbuildinfo

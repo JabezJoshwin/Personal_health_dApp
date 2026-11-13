@@ -255,3 +255,24 @@ pre {
   border-radius: 10px !important;
   font-weight: 600 !important;
 }
+
+textarea {
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #0c1228;
+  color: var(--text);
+  padding: 10px 12px;
+  font-size: 0.85rem;
+  min-height: 120px;
+  resize: vertical;
+}
+
+textarea:focus {
+  outline: 2px solid rgba(124, 92, 255, 0.45);
+  border-color: var(--accent);
+}
+
+.ok {
+  color: var(--accent2);
+  font-size: 0.9rem;
+}

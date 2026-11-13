@@ -10,12 +10,11 @@ import { clusterApiUrl } from "@solana/web3.js";
 
 const network = process.env.NEXT_PUBLIC_SOLANA_NETWORK ?? "devnet";
 
+// NEXT_PUBLIC_SOLANA_RPC_URL overrides the cluster endpoint, e.g.
+// http://127.0.0.1:8899 for a local solana-test-validator.
 const endpoint =
-  network === "devnet"
-    ? clusterApiUrl("devnet")
-    : network === "mainnet-beta"
-      ? clusterApiUrl("mainnet-beta")
-      : clusterApiUrl("devnet");
+  process.env.NEXT_PUBLIC_SOLANA_RPC_URL?.trim() ||
+  (network === "mainnet-beta" ? clusterApiUrl("mainnet-beta") : clusterApiUrl("devnet"));
 
 export default function WalletProviders({ children }: { children: ReactNode }) {
   const wallets = useMemo(() => [new PhantomWalletAdapter()], []);

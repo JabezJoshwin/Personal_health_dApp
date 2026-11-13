@@ -3,7 +3,7 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
-import { generateProofHandler } from "./proof.js";
+import { verifyProofHandler } from "./proof.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -28,7 +28,7 @@ app.get("/health", (_req, res) => {
   res.json({ ok: true, service: "phr-zk-backend" });
 });
 
-app.post("/generate-proof", generateProofHandler({ circuitDir }));
+app.post("/verify-proof", verifyProofHandler({ circuitDir }));
 
 app.use(
   (
@@ -49,16 +49,8 @@ const port = Number(process.env.PORT ?? 4000);
 app.listen(port, () => {
   console.log(`Backend listening on http://localhost:${port}`);
   console.log(`Circuit build dir: ${circuitDir}`);
-  const wasm = path.join(
-    circuitDir,
-    "vaccination_threshold_js",
-    "vaccination_threshold.wasm"
-  );
-  const zkey = path.join(circuitDir, "circuit_final.zkey");
   const vkey = path.join(circuitDir, "verification_key.json");
-  for (const p of [wasm, zkey, vkey]) {
-    if (!fs.existsSync(p)) {
-      console.warn(`Missing artifact (run circuits build): ${p}`);
-    }
+  if (!fs.existsSync(vkey)) {
+    console.warn(`Missing artifact (run circuits build): ${vkey}`);
   }
 });

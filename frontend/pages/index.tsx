@@ -4,11 +4,25 @@ import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { encryptJson } from "@/lib/crypto";
 import { uploadEncryptedJson } from "@/lib/ipfs";
 import {
-  fetchOnChainCid,
+  fetchRecord,
+  fetchRecordsByOwner,
   getProgramId,
   storeCidOnChain,
 } from "@/lib/solana";
-import type { HealthRecordPayload, ProofApiResponse } from "@/lib/types";
+import type { HealthRecordPayload } from "@/lib/types";
+import {
+  DEFAULT_ARTIFACTS,
+  bytesToCommitment,
+  checkDisclosure,
+  commitmentToBytes,
+  computeCommitment,
+  parseCount,
+  parseFieldElement,
+  proveThreshold,
+  randomFieldElement,
+  type DisclosureCheck,
+  type DisclosurePackage,
+} from "@/lib/zk";
 
 const defaultRecord: HealthRecordPayload = {
   name: "Alex Student",
@@ -19,7 +33,19 @@ const defaultRecord: HealthRecordPayload = {
   testReports: ["CBC — normal", "Lipid panel — pending"],
 };
 
-const DEMO_THRESHOLD = 2;
+const DEFAULT_THRESHOLD = 2;
+
+/** What the owner's browser remembers about the record it just uploaded. */
+type UploadedRecord = { address: string; vaccinationCount: number; salt: bigint };
+
+const REJECTION_TEXT: Record<string, string> = {
+  "commitment mismatch": "The proof is about a different record than the one at this address.",
+  "threshold mismatch": "The proof was made for a different threshold than the one you asked for.",
+  "challenge mismatch": "The proof was made for a different challenge. It may be a replay.",
+  "invalid proof": "The proof is not cryptographically valid.",
+  "claim not satisfied": "The proof is valid, but it shows the count is below the threshold.",
+  "malformed public signals": "The proof package is malformed.",
+};
 
 function parseCommaList(raw: string): string[] {
   return raw
@@ -42,14 +68,23 @@ export default function Home() {
   const [chainNote, setChainNote] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [uploaded, setUploaded] = useState<UploadedRecord | null>(null);
   const [proofStatus, setProofStatus] = useState<
     "idle" | "loading" | "done" | "error"
   >("idle");
-  const [proofResult, setProofResult] = useState<ProofApiResponse | null>(
-    null
-  );
+  const [proofError, setProofError] = useState<string | null>(null);
+  const [proveThresholdText, setProveThresholdText] = useState(String(DEFAULT_THRESHOLD));
+  const [proveChallengeText, setProveChallengeText] = useState("");
+  const [proofPackage, setProofPackage] = useState<DisclosurePackage | null>(null);
+  const [proofMs, setProofMs] = useState<number | null>(null);
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+  // Verifier's side. In real use this runs on the verifier's own device.
+  const [verifyThresholdText, setVerifyThresholdText] = useState(String(DEFAULT_THRESHOLD));
+  const [verifyChallengeText, setVerifyChallengeText] = useState("");
+  const [verifyPackageText, setVerifyPackageText] = useState("");
+  const [verifyBusy, setVerifyBusy] = useState(false);
+  const [verifyResult, setVerifyResult] = useState<DisclosureCheck | null>(null);
+  const [verifyError, setVerifyError] = useState<string | null>(null);
 
   const programIdStr = useMemo(() => {
     try {
@@ -64,11 +99,11 @@ export default function Home() {
       setChainNote(null);
       return;
     }
-    const onChain = await fetchOnChainCid(connection, wallet.publicKey);
-    if (onChain) {
-      setCid(onChain.cid);
+    const [latest] = await fetchRecordsByOwner(connection, wallet.publicKey);
+    if (latest) {
+      setCid(latest.cid);
       setChainNote(
-        `On-chain CID (slot confirmed). Timestamp (unix): ${onChain.timestamp.toString()}`
+        `Latest on-chain record: ${latest.address}. Timestamp (unix ms): ${latest.timestamp.toString()}`
       );
     } else {
       setChainNote("No on-chain record for this wallet yet.");
@@ -81,24 +116,33 @@ export default function Home() {
     setTxSig(null);
     try {
       if (!wallet.publicKey) throw new Error("Connect Phantom first.");
+      const vaccinationCount = parseCount(record.vaccinationCount);
+      // The salt hides the count inside the public commitment. It is stored
+      // only inside the encrypted record.
+      const salt = randomFieldElement();
       const normalized: HealthRecordPayload = {
         ...record,
+        vaccinationCount,
         vaccines: parseCommaList(vaccinesText),
         testReports: parseCommaList(testReportsText),
+        zkSalt: salt.toString(),
       };
       setRecord(normalized);
+      const commitment = computeCommitment(vaccinationCount, salt);
       const encrypted = await encryptJson(normalized, passphrase);
       const newCid = await uploadEncryptedJson(encrypted);
       setCid(newCid);
-      const { signature } = await storeCidOnChain(
+      const { signature, account } = await storeCidOnChain(
         connection,
         wallet,
-        newCid
+        newCid,
+        commitmentToBytes(commitment)
       );
       setTxSig(signature);
-      setChainNote(
-        "Created new on-chain metadata account (init_record)."
-      );
+      setUploaded({ address: account, vaccinationCount, salt });
+      setProofPackage(null);
+      setProofStatus("idle");
+      setChainNote(`Created on-chain record account ${account} (init_record).`);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -107,33 +151,84 @@ export default function Home() {
   };
 
   const handleProof = async () => {
-    setError(null);
+    setProofError(null);
+    setProofPackage(null);
+    setProofMs(null);
+    if (!uploaded) {
+      setProofStatus("error");
+      setProofError("Upload a record first. The proof must refer to an on-chain record.");
+      return;
+    }
     setProofStatus("loading");
-    setProofResult(null);
     try {
-      const res = await fetch(`${apiUrl}/generate-proof`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          vaccinationCount: record.vaccinationCount,
-          threshold: DEMO_THRESHOLD,
-        }),
+      const threshold = parseCount(proveThresholdText);
+      const challenge = parseFieldElement(proveChallengeText, "Challenge");
+      const started = performance.now();
+      // Runs entirely in this browser tab; the count and salt are not sent anywhere.
+      const { proof, publicSignals } = await proveThreshold({
+        vaccinationCount: uploaded.vaccinationCount,
+        salt: uploaded.salt,
+        threshold,
+        challenge,
       });
-      const data = (await res.json()) as ProofApiResponse & {
-        error?: string;
-        message?: string;
-      };
-      if (!res.ok) {
-        setProofStatus("error");
-        setProofResult(data);
-        setError(data.message ?? data.error ?? `HTTP ${res.status}`);
-        return;
-      }
+      setProofMs(performance.now() - started);
+      setProofPackage({ record: uploaded.address, proof, publicSignals });
       setProofStatus("done");
-      setProofResult(data);
     } catch (e) {
       setProofStatus("error");
-      setError(e instanceof Error ? e.message : String(e));
+      setProofError(e instanceof Error ? e.message : String(e));
+    }
+  };
+
+  const handleNewChallenge = () => {
+    const challenge = randomFieldElement().toString();
+    setVerifyChallengeText(challenge);
+    // Demo convenience: both roles share this page, so hand the challenge to
+    // the owner's form as the verifier would over any channel.
+    setProveChallengeText(challenge);
+    setVerifyResult(null);
+  };
+
+  const handleVerify = async () => {
+    setVerifyError(null);
+    setVerifyResult(null);
+    setVerifyBusy(true);
+    try {
+      const threshold = parseCount(verifyThresholdText);
+      const challenge = parseFieldElement(verifyChallengeText, "Challenge");
+      let pkg: DisclosurePackage;
+      try {
+        pkg = JSON.parse(verifyPackageText) as DisclosurePackage;
+      } catch {
+        throw new Error("The proof package is not valid JSON.");
+      }
+      if (typeof pkg?.record !== "string" || !Array.isArray(pkg.publicSignals)) {
+        throw new Error("The proof package is missing its record address or public signals.");
+      }
+      // The commitment comes from the chain, never from the prover.
+      const onChain = await fetchRecord(connection, pkg.record);
+      if (!onChain) {
+        throw new Error("No health record account exists at that address.");
+      }
+      const vkeyRes = await fetch(DEFAULT_ARTIFACTS.vkey);
+      if (!vkeyRes.ok) throw new Error("Could not load the verification key.");
+      const vkey = (await vkeyRes.json()) as unknown;
+      setVerifyResult(
+        await checkDisclosure({
+          vkey,
+          proof: pkg.proof,
+          publicSignals: pkg.publicSignals,
+          expected: {
+            commitment: bytesToCommitment(onChain.commitment),
+            threshold,
+            challenge,
+          },
+        })
+      );
+    } catch (e) {
+      setVerifyError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setVerifyBusy(false);
     }
   };
 
@@ -143,8 +238,9 @@ export default function Home() {
         <div>
           <h1>Personal Health Record (demo)</h1>
           <p className="sub">
-            Client AES-GCM → Pinata (IPFS) → Solana Devnet metadata. ZK
-            proof off-chain (Circom / SnarkJS).
+            Client AES-GCM → Pinata (IPFS) → Solana Devnet metadata with a
+            commitment. Zero-knowledge proof generated in this browser
+            (Circom / SnarkJS).
           </p>
         </div>
         <WalletMultiButton />
@@ -158,7 +254,7 @@ export default function Home() {
         </p>
         <div className="row">
           <button type="button" className="btn secondary" onClick={refreshChain}>
-            Refresh on-chain CID
+            Refresh on-chain record
           </button>
         </div>
         {chainNote && <p className="note">{chainNote}</p>}
@@ -169,6 +265,7 @@ export default function Home() {
         <p className="small">
           Only <strong>vaccinationCount</strong> is used for the ZK claim
           (≥ threshold). The IPFS object is encrypted JSON of the full record.
+          A salted commitment to the count is stored on-chain with the CID.
         </p>
         <div className="grid">
           <label>
@@ -258,61 +355,149 @@ export default function Home() {
       </section>
 
       <section className="card">
-        <h2>Zero-knowledge: vaccinationCount ≥ {DEMO_THRESHOLD}</h2>
+        <h2>Upload result</h2>
+        {error && <p className="err">{error}</p>}
+        <dl className="dl">
+          <dt>IPFS CID</dt>
+          <dd className="mono wrap">{cid ?? "—"}</dd>
+          <dt>Record account</dt>
+          <dd className="mono wrap">{uploaded?.address ?? "—"}</dd>
+          <dt>Transaction signature</dt>
+          <dd className="mono wrap">{txSig ?? "—"}</dd>
+        </dl>
+      </section>
+
+      <section className="card">
+        <h2>Owner: prove vaccinationCount ≥ threshold</h2>
         <p className="small">
-          The backend runs SnarkJS Groth16 prove + verify using compiled circuit
-          artifacts. The verifier learns the threshold and that the claim holds,
-          not the exact count.
+          The proof is generated in this browser. The count and its salt never
+          leave this device. The verifier supplies the threshold and a one-time
+          challenge.
         </p>
+        <div className="grid">
+          <label>
+            Threshold (from the verifier)
+            <input
+              type="number"
+              min={0}
+              value={proveThresholdText}
+              onChange={(e) => setProveThresholdText(e.target.value)}
+            />
+          </label>
+          <label>
+            Challenge (from the verifier)
+            <input
+              className="mono"
+              value={proveChallengeText}
+              onChange={(e) => setProveChallengeText(e.target.value)}
+              placeholder="Paste the verifier's challenge"
+            />
+          </label>
+        </div>
         <div className="row">
           <button
             type="button"
             className="btn secondary"
-            disabled={proofStatus === "loading"}
+            disabled={proofStatus === "loading" || !uploaded}
             onClick={handleProof}
           >
             {proofStatus === "loading" ? "Generating proof…" : "Generate proof"}
           </button>
         </div>
-        <p className="small">
-          Proof status: <strong>{proofStatus}</strong>
-        </p>
+        {!uploaded && (
+          <p className="note">Upload a record above to enable proving.</p>
+        )}
+        {proofError && <p className="err">{proofError}</p>}
+        {proofPackage && (
+          <>
+            <p className="ok">
+              Proof generated
+              {proofMs !== null ? ` in ${Math.round(proofMs)} ms` : ""}. Send
+              this package to the verifier.
+            </p>
+            <pre className="mono small-pre">
+              {JSON.stringify(proofPackage, null, 2)}
+            </pre>
+            <div className="row">
+              <button
+                type="button"
+                className="btn secondary"
+                onClick={() =>
+                  setVerifyPackageText(JSON.stringify(proofPackage, null, 2))
+                }
+              >
+                Copy into verifier form below
+              </button>
+            </div>
+          </>
+        )}
       </section>
 
       <section className="card">
-        <h2>Results</h2>
-        {error && <p className="err">{error}</p>}
-        <dl className="dl">
-          <dt>IPFS CID</dt>
-          <dd className="mono wrap">{cid ?? "—"}</dd>
-          <dt>Transaction signature</dt>
-          <dd className="mono wrap">{txSig ?? "—"}</dd>
-          <dt>Verification result</dt>
-          <dd>
-            {proofResult
-              ? proofResult.verified
-                ? "Verified (true)"
-                : "Not verified / false"
-              : "—"}
-          </dd>
-        </dl>
-        {proofResult?.note && <p className="note">{proofResult.note}</p>}
-        {proofResult?.publicSignals && (
-          <details className="details">
-            <summary>Public signals</summary>
-            <pre className="mono">
-              {JSON.stringify(proofResult.publicSignals, null, 2)}
-            </pre>
-          </details>
+        <h2>Verifier: check a proof</h2>
+        <p className="small">
+          The verifier chooses the threshold and a fresh challenge, reads the
+          commitment from the record account on Solana, and checks the proof
+          against all three. No wallet is needed.
+        </p>
+        <div className="grid">
+          <label>
+            Threshold required
+            <input
+              type="number"
+              min={0}
+              value={verifyThresholdText}
+              onChange={(e) => setVerifyThresholdText(e.target.value)}
+            />
+          </label>
+          <label>
+            Challenge issued
+            <input
+              className="mono"
+              value={verifyChallengeText}
+              onChange={(e) => setVerifyChallengeText(e.target.value)}
+              placeholder="Generate a new challenge"
+            />
+          </label>
+          <label className="wide">
+            Proof package from the owner
+            <textarea
+              className="mono"
+              value={verifyPackageText}
+              onChange={(e) => setVerifyPackageText(e.target.value)}
+              placeholder='{"record": "...", "proof": {...}, "publicSignals": [...]}'
+            />
+          </label>
+        </div>
+        <div className="row">
+          <button
+            type="button"
+            className="btn secondary"
+            onClick={handleNewChallenge}
+          >
+            New challenge
+          </button>
+          <button
+            type="button"
+            className="btn"
+            disabled={verifyBusy || !verifyPackageText.trim()}
+            onClick={handleVerify}
+          >
+            {verifyBusy ? "Verifying…" : "Verify proof"}
+          </button>
+        </div>
+        {verifyError && <p className="err">{verifyError}</p>}
+        {verifyResult?.ok === true && (
+          <p className="ok">
+            Accepted: the record at this address has vaccinationCount ≥{" "}
+            {verifyThresholdText}.
+          </p>
         )}
-        {proofResult?.proof != null ? (
-          <details className="details">
-            <summary>Proof object</summary>
-            <pre className="mono small-pre">
-              {JSON.stringify(proofResult.proof, null, 2)}
-            </pre>
-          </details>
-        ) : null}
+        {verifyResult?.ok === false && (
+          <p className="err">
+            Rejected: {REJECTION_TEXT[verifyResult.reason] ?? verifyResult.reason}
+          </p>
+        )}
       </section>
 
       <footer className="footer">
